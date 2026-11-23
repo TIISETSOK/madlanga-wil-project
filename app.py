@@ -33,7 +33,7 @@ class Database:
             }
         }
         
-        # Converting the HTML table into a Pandas DataFrame (Systems Programming: Data processing)
+        # Converting the HTML table into a Pandas DataFrame
         self.tenders_df = pd.DataFrame([
             {"Title": "Transnet 1,064 Locomotive Procurement", "Department": "Transnet", "Company": "CSR, CNR, Bombardier", "Amount": "R 54.5 Billion", "Status": "Set Aside"},
             {"Title": "Estina Dairy Farm Project", "Department": "Agriculture", "Company": "Estina (Pty) Ltd", "Amount": "R 280 Million", "Status": "Cancelled"},
@@ -94,14 +94,35 @@ class OwnershipService:
 # Page Configuration
 st.set_page_config(page_title="Madlanga Platform", page_icon="⚖️", layout="wide")
 
-# Custom CSS to mimic the Tailwind design
+# Custom CSS to mimic the Tailwind design AND fix grey text globally
 st.markdown("""
     <style>
     .stApp { background-color: #f8fafc; }
+    
+    /* Hero Banner */
     .hero { background: linear-gradient(135deg, #0f172a 0%, #7f1d1d 100%); color: white; padding: 40px; border-radius: 10px; text-align: center; margin-bottom: 20px; }
     .hero h1 { color: white !important; }
-    .high-risk { background-color: #fee2e2; border-left: 5px solid #dc2626; padding: 15px; border-radius: 5px; }
-    .medium-risk { background-color: #fef3c7; border-left: 5px solid #d97706; padding: 15px; border-radius: 5px; }
+    
+    /* Ownership Risk Cards */
+    .high-risk { background-color: #fee2e2; border-left: 5px solid #dc2626; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
+    .medium-risk { background-color: #fef3c7; border-left: 5px solid #d97706; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
+    
+    /* --- GLOBAL TEXT FIXES --- */
+    /* Force standard text paragraphs to be dark */
+    .stMarkdown p, .stText, .stMarkdown li {
+        color: #1e293b !important; 
+        font-size: 16px;
+    }
+    
+    /* Force all headers to be dark navy */
+    h1, h2, h3, h4, h5, h6 {
+        color: #0f172a !important; 
+    }
+    
+    /* Force input labels to be dark */
+    label {
+        color: #0f172a !important;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -115,12 +136,12 @@ def init_services():
 
 db, ai_service, ownership_service = init_services()
 
-# Sidebar Navigation (Replacing the JS page-view logic)
+# Sidebar Navigation
 st.sidebar.title("⚖️ Madlanga Platform")
 st.sidebar.markdown("Tender Transparency & Accountability")
 st.sidebar.warning("⚠️ Prototype demonstration only. Data is illustrative.")
 
-page = st.sidebar.radio("Navigate to:", ["Home", "Tender Tracker", "Beneficial Ownership", "Whistleblower", "AI Assistant"])
+page = st.sidebar.radio("Navigate to:", ["Home", "Tender Tracker", "Beneficial Ownership", "Whistleblower"])
 
 # ==========================================
 # PAGE ROUTING
@@ -152,7 +173,7 @@ elif page == "Tender Tracker":
     with col2:
         dept_filter = st.selectbox("Department / Sector", ["All"] + list(db.tenders_df['Department'].unique()))
     
-    # Filter logic (Systems Programming: Data Filtering)
+    # Filter logic
     filtered_df = db.tenders_df
     if search_query:
         filtered_df = filtered_df[filtered_df.apply(lambda row: search_query.lower() in str(row).lower(), axis=1)]
@@ -220,10 +241,9 @@ elif page == "Whistleblower":
                 st.info(f"Your anonymous tracking token is: **TOK-{pd.Timestamp.now().strftime('%M%S')}-2026**")
 
 # ==========================================
-# FLOATING AI CHATBOT (Simulated via Sidebar/Expander)
+# FLOATING AI CHATBOT (Moved to Sidebar for Streamlit)
 # ==========================================
 with st.sidebar.expander("🤖 AI Navigator Chatbot", expanded=False):
-    # Streamlit chat interface
     if "messages" not in st.session_state:
         st.session_state.messages = [{"role": "assistant", "content": "Hello! I am your AI Guide. Ask me about this platform or legal terms."}]
 
@@ -232,15 +252,13 @@ with st.sidebar.expander("🤖 AI Navigator Chatbot", expanded=False):
             st.markdown(message["content"])
 
     if prompt := st.chat_input("Ask me anything..."):
-        # Add user message
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
 
-        # Get AI response (Using the Strategy Pattern)
         response = ai_service.get_response(prompt)
         
-        # Add AI message
         with st.chat_message("assistant"):
             st.markdown(response)
         st.session_state.messages.append({"role": "assistant", "content": response})
+        
